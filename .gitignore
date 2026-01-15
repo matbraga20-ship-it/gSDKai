@@ -1,0 +1,71 @@
+# .gitignore for commercial SDK package
+
+# --- Keep only commercial/product files tracked ---
+# Track core SDK and distribution assets
+!/public/
+!/src/
+!/views/
+!/docs/
+!/README.md
+!/LICENSE
+!/CHANGELOG.md
+!/composer.json
+!/composer.lock
+!/setup.sh
+!/setup.ps1
+!/package.sh
+!/package.ps1
+!/newroadmap.md
+!/ROADMAP.md
+!/SECURITY.md
+!/SUPPORT.md
+!/certs/
+!/tools/download_cacert.ps1
+!/tools/update_php_ini_certs.php
+!/tools/test_playground.php
+!/tools/sample_silence.wav
+
+# Ignore everything else by default
+/*
+
+# Allow keeping the .gitignore itself and docs folder index
+!.gitignore
+!/.gitattributes
+
+# Re-allow specific folders mentioned above (negations for nested paths)
+!/public/**
+!/src/**
+!/views/**
+!/docs/**
+!/certs/**
+!/tools/**
+
+# Development files and sensitive data - exclude from package
+/vendor/
+/node_modules/
+/.phpunit.result.cache
+composer.phar
+composer-setup.php
+.env
+.env.*
+
+# Storage runtime files (don't include runtime config or logs)
+/storage/app/config.json
+/storage/logs/*
+/storage/cache/*
+
+# Editor / OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary / build artifacts
+*.log
+*.tmp
+*.temp
+.cache/
+
