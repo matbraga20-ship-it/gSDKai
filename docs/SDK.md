@@ -173,9 +173,301 @@ echo $response->model;
 echo $response->usage;
 ```
 
+### EmbeddingsService
+
+Generate embeddings for semantic search and retrieval.
+
+```php
+<?php
+use OpenAI\Services\EmbeddingsService;
+
+$service = new EmbeddingsService();
+
+$embeddings = $service->create('Sample text to embed');
+
+// Raw embeddings array (API response)
+print_r($embeddings);
+```
+
+### ImagesService
+
+Generate images from a text prompt.
+
+```php
+<?php
+use OpenAI\Services\ImagesService;
+
+$service = new ImagesService();
+
+$images = $service->generate('A futuristic city at sunset', [
+    'size' => '1024x1024',
+    'n' => 1,
+]);
+
+// Raw images payload (base64 or URLs depending on API)
+print_r($images);
+```
+
+### AudioService
+
+Transcribe audio files to text.
+
+```php
+<?php
+use OpenAI\Services\AudioService;
+
+$service = new AudioService();
+
+$result = $service->transcribe('/path/to/audio.mp3', [
+    'language' => 'en',
+]);
+
+print_r($result);
+```
+
+### ModerationService
+
+Moderate text against OpenAI policies.
+
+```php
+<?php
+use OpenAI\Services\ModerationService;
+
+$service = new ModerationService();
+
+$result = $service->moderate([
+    'This is a sample text to moderate.'
+]);
+
+print_r($result);
+```
+
+### ModelsService
+
+List available models.
+
+```php
+<?php
+use OpenAI\Services\ModelsService;
+
+$service = new ModelsService();
+
+$models = $service->list();
+
+print_r($models);
+```
+
+### FilesService
+
+List and upload files.
+
+```php
+<?php
+use OpenAI\Services\FilesService;
+
+$service = new FilesService();
+
+// List files
+$files = $service->list();
+print_r($files);
+
+// Upload file (optional purpose field)
+$uploaded = $service->upload('/path/to/data.jsonl', [
+    'purpose' => 'fine-tune'
+]);
+
+print_r($uploaded);
+```
+
+### AssistantsService
+
+Manage assistants (create, list, retrieve, update, delete).
+
+```php
+<?php
+use OpenAI\Services\AssistantsService;
+
+$service = new AssistantsService();
+
+// Create assistant
+$assistant = $service->create([
+    'name' => 'Content Helper',
+    'model' => 'gpt-4o-mini',
+    'instructions' => 'You are a helpful writing assistant.'
+]);
+
+// List assistants
+$list = $service->list();
+
+// Retrieve assistant
+$retrieved = $service->retrieve($assistant['id']);
+
+// Update assistant
+$updated = $service->update($assistant['id'], [
+    'instructions' => 'Updated instructions.'
+]);
+
+// Delete assistant
+$deleted = $service->delete($assistant['id']);
+```
+
+### ThreadsService
+
+Manage threads for Assistants.
+
+```php
+<?php
+use OpenAI\Services\ThreadsService;
+
+$service = new ThreadsService();
+
+// Create thread
+$thread = $service->create([
+    'messages' => [
+        ['role' => 'user', 'content' => 'Hello!']
+    ]
+]);
+
+// Retrieve thread
+$retrieved = $service->retrieve($thread['id']);
+
+// Update thread metadata
+$updated = $service->update($thread['id'], [
+    'metadata' => ['source' => 'sdk']
+]);
+
+// Delete thread
+$deleted = $service->delete($thread['id']);
+```
+
+### MessagesService
+
+Manage messages inside threads.
+
+```php
+<?php
+use OpenAI\Services\MessagesService;
+
+$service = new MessagesService();
+
+// Create message
+$message = $service->create('thread_id', [
+    'role' => 'user',
+    'content' => 'Draft a product description.'
+]);
+
+// List messages
+$messages = $service->list('thread_id');
+
+// Retrieve message
+$retrieved = $service->retrieve('thread_id', $message['id']);
+```
+
+### RunsService
+
+Run assistants on threads and retrieve results.
+
+```php
+<?php
+use OpenAI\Services\RunsService;
+
+$service = new RunsService();
+
+// Create run
+$run = $service->create('thread_id', [
+    'assistant_id' => 'assistant_id'
+]);
+
+// Retrieve run
+$retrieved = $service->retrieve('thread_id', $run['id']);
+
+// List runs
+$runs = $service->list('thread_id');
+
+// Cancel run
+$cancelled = $service->cancel('thread_id', $run['id']);
+```
+
+### VectorStoresService
+
+Create vector stores and manage stored files.
+
+```php
+<?php
+use OpenAI\Services\VectorStoresService;
+
+$service = new VectorStoresService();
+
+// Create vector store
+$store = $service->create([
+    'name' => 'Knowledge Base'
+]);
+
+// Add file to store
+$file = $service->addFile($store['id'], [
+    'file_id' => 'file_123'
+]);
+
+// List files in store
+$files = $service->listFiles($store['id']);
+```
+
+### BatchesService
+
+Create and manage batch jobs.
+
+```php
+<?php
+use OpenAI\Services\BatchesService;
+
+$service = new BatchesService();
+
+$batch = $service->create([
+    'input_file_id' => 'file_123',
+    'endpoint' => '/v1/responses',
+    'completion_window' => '24h'
+]);
+
+$list = $service->list();
+```
+
+### FineTuningService
+
+Create and manage fine-tuning jobs.
+
+```php
+<?php
+use OpenAI\Services\FineTuningService;
+
+$service = new FineTuningService();
+
+$job = $service->createJob([
+    'training_file' => 'file_123',
+    'model' => 'gpt-4o-mini'
+]);
+
+$events = $service->listEvents($job['id']);
+```
+
+### RealtimeService
+
+Create ephemeral sessions for the Realtime API.
+
+```php
+<?php
+use OpenAI\Services\RealtimeService;
+
+$service = new RealtimeService();
+
+$session = $service->createSession([
+    'model' => 'gpt-4o-realtime-preview',
+    'voice' => 'alloy'
+]);
+```
+
 ## OpenAI Client
 
-Direct access to OpenAI API requests (advanced usage).
+Direct access to OpenAI API requests (advanced usage). This SDK uses the **Responses API** as the default generation entrypoint.
 
 ```php
 <?php
@@ -186,7 +478,7 @@ $client = new OpenAIClient();
 // Send request to OpenAI Responses API
 $response = $client->generateResponse([
     'model' => 'gpt-4o-mini',
-    'messages' => [
+    'input' => [
         [
             'role' => 'system',
             'content' => 'You are a helpful assistant.'
@@ -196,13 +488,13 @@ $response = $client->generateResponse([
             'content' => 'Hello!'
         ]
     ],
-    'max_tokens' => 100,
+    'max_output_tokens' => 100,
     'temperature' => 0.7
 ]);
 
-// Access response
-echo $response['choices'][0]['message']['content'];
-echo $response['usage']['total_tokens'];
+// Access response (Responses API)
+echo $response['output_text'] ?? '';
+echo $response['usage']['total_tokens'] ?? '';
 
 // Test API connectivity
 if ($client->testConnection()) {
@@ -211,6 +503,46 @@ if ($client->testConnection()) {
     echo "API key test failed";
 }
 ```
+
+### Advanced Generic Requests
+
+For any OpenAI endpoint not covered by a dedicated service, use the generic request method.
+
+```php
+<?php
+use OpenAI\Client\OpenAIClient;
+
+$client = new OpenAIClient();
+
+// Example: create a vector store
+$response = $client->request('/vector_stores', [
+    'name' => 'Docs Index'
+]);
+
+print_r($response);
+```
+
+## API Coverage
+
+This SDK currently covers the following OpenAI endpoints:
+
+- Responses (`/responses`)
+- Embeddings (`/embeddings`)
+- Models (`/models`)
+- Images (`/images/generations`)
+- Files (`/files`)
+- Audio transcriptions (`/audio/transcriptions`)
+- Moderations (`/moderations`)
+- Assistants (`/assistants`)
+- Threads (`/threads`)
+- Messages (`/threads/{thread_id}/messages`)
+- Runs (`/threads/{thread_id}/runs`)
+- Vector stores (`/vector_stores`)
+- Batches (`/batches`)
+- Fine-tuning (`/fine_tuning/jobs`)
+- Realtime sessions (`/realtime/sessions`)
+
+The SDK also exposes a generic request method for any future endpoints.
 
 ## Exception Handling
 

@@ -348,6 +348,315 @@ curl -X POST http://localhost:8000/api/generate/shorts-ideas \
 
 ---
 
+## Embeddings
+
+### Create Embeddings
+
+**POST** `/api/embeddings`
+
+Create vector embeddings for text.
+
+**Request:**
+```json
+{
+  "input": "Text to embed"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "embeddings": {
+      "object": "list",
+      "data": [
+        {
+          "object": "embedding",
+          "embedding": [0.123, 0.456],
+          "index": 0
+        }
+      ]
+    }
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/embeddings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "Semantic search example"
+  }'
+```
+
+---
+
+## Images
+
+### Generate Images
+
+**POST** `/api/images/generate`
+
+Generate images from a text prompt.
+
+**Request:**
+```json
+{
+  "prompt": "A futuristic city at sunset",
+  "options": {
+    "size": "1024x1024",
+    "n": 1
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "images": {
+      "data": [
+        {
+          "b64_json": "base64string..."
+        }
+      ]
+    }
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/images/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Minimalist logo in black and gold",
+    "options": { "size": "512x512", "n": 1 }
+  }'
+```
+
+---
+
+## Audio
+
+### Transcribe Audio
+
+**POST** `/api/audio/transcribe`
+
+Transcribe an audio file. This endpoint expects **multipart/form-data**.
+
+**Request (form-data):**
+- `file` (required): audio file
+- `language` (optional): language code (e.g., `en`)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "transcription": {
+      "text": "Transcribed text here."
+    }
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/audio/transcribe \
+  -F "file=@/path/to/audio.mp3" \
+  -F "language=en"
+```
+
+---
+
+## Moderation
+
+### Moderate Content
+
+**POST** `/api/moderation`
+
+Check content against OpenAI moderation policies.
+
+**Request:**
+```json
+{
+  "input": "Text to moderate"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "mod_123",
+    "results": [
+      {
+        "flagged": false
+      }
+    ]
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/moderation \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "Check this text for safety."
+  }'
+```
+
+---
+
+## Models
+
+### List Models
+
+**GET** `/api/models`
+
+List available OpenAI models.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "data": [
+      { "id": "gpt-4o-mini", "object": "model" }
+    ]
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:8000/api/models
+```
+
+---
+
+## Files
+
+### List Files
+
+**GET** `/api/files`
+
+List files associated with the OpenAI account.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "data": [
+      { "id": "file_123", "filename": "data.jsonl" }
+    ]
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:8000/api/files
+```
+
+### Upload File
+
+**POST** `/api/files/upload`
+
+Upload a file using **multipart/form-data**.
+
+**Request (form-data):**
+- `file` (required): file to upload
+- `purpose` (optional): e.g., `fine-tune`, `assistants`, `vision`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "file_123",
+    "filename": "data.jsonl"
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/files/upload \
+  -F "file=@/path/to/data.jsonl" \
+  -F "purpose=fine-tune"
+```
+
+---
+
+## OpenAI API Explorer
+
+### Proxy Any OpenAI Endpoint
+
+**POST** `/api/openai/request`
+
+Send a raw request to any OpenAI endpoint. Useful for Assistants, Threads, Runs, Vector Stores, Batches, Fine-tuning, Realtime sessions, or any future endpoints.
+
+**Request:**
+```json
+{
+  "method": "POST",
+  "endpoint": "/assistants",
+  "payload": {
+    "name": "Content Helper",
+    "model": "gpt-4o-mini",
+    "instructions": "You are a helpful assistant."
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "asst_123",
+    "object": "assistant"
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/openai/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "POST",
+    "endpoint": "/vector_stores",
+    "payload": { "name": "Docs Index" }
+  }'
+```
+
+---
+
 ## Error Codes
 
 | Code | Status | Description |
