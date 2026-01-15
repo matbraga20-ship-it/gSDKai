@@ -175,7 +175,7 @@ echo $response->usage;
 
 ## OpenAI Client
 
-Direct access to OpenAI API requests (advanced usage).
+Direct access to OpenAI API requests (advanced usage). This SDK uses the **Responses API** as the default generation entrypoint.
 
 ```php
 <?php
@@ -186,7 +186,7 @@ $client = new OpenAIClient();
 // Send request to OpenAI Responses API
 $response = $client->generateResponse([
     'model' => 'gpt-4o-mini',
-    'messages' => [
+    'input' => [
         [
             'role' => 'system',
             'content' => 'You are a helpful assistant.'
@@ -196,13 +196,13 @@ $response = $client->generateResponse([
             'content' => 'Hello!'
         ]
     ],
-    'max_tokens' => 100,
+    'max_output_tokens' => 100,
     'temperature' => 0.7
 ]);
 
-// Access response
-echo $response['choices'][0]['message']['content'];
-echo $response['usage']['total_tokens'];
+// Access response (Responses API)
+echo $response['output_text'] ?? '';
+echo $response['usage']['total_tokens'] ?? '';
 
 // Test API connectivity
 if ($client->testConnection()) {
@@ -211,6 +211,20 @@ if ($client->testConnection()) {
     echo "API key test failed";
 }
 ```
+
+## API Coverage
+
+This SDK currently covers the following OpenAI endpoints:
+
+- Responses (`/responses`)
+- Embeddings (`/embeddings`)
+- Models (`/models`)
+- Images (`/images/generations`)
+- Files (`/files`)
+- Audio transcriptions (`/audio/transcriptions`)
+- Moderations (`/moderations`)
+
+Other OpenAI features (e.g., Assistants, Realtime, Fine-tuning, Batches, Vector Stores, etc.) are **not yet implemented**.
 
 ## Exception Handling
 
