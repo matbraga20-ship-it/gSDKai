@@ -348,6 +348,61 @@ curl -X POST http://localhost:8000/api/generate/shorts-ideas \
 
 ---
 
+## Responses
+
+### Create Response
+
+**POST** `/api/responses`
+
+Send a payload directly to the OpenAI Responses API.
+
+**Request:**
+```json
+{
+  "model": "gpt-4o-mini",
+  "input": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "role": "user",
+      "content": "Summarize this text in one sentence."
+    }
+  ],
+  "max_output_tokens": 120,
+  "temperature": 0.7
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "output_text": "Short summary here."
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/responses \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "input": [
+      { "role": "system", "content": "You are a helpful assistant." },
+      { "role": "user", "content": "Write a short elevator pitch." }
+    ],
+    "max_output_tokens": 120
+  }'
+```
+
+---
+
 ## Embeddings
 
 ### Create Embeddings

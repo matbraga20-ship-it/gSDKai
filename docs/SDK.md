@@ -112,6 +112,35 @@ $tagsResponse = $service->generateTags('Your content here...');
 echo $tagsResponse->result;  // "tag1, tag2, tag3, ..."
 ```
 
+### ResponsesService
+
+Send direct payloads to the OpenAI Responses API.
+
+```php
+<?php
+use OpenAI\Services\ResponsesService;
+
+$service = new ResponsesService();
+
+$response = $service->create([
+    'model' => 'gpt-4o-mini',
+    'input' => [
+        [
+            'role' => 'system',
+            'content' => 'You are a helpful assistant.'
+        ],
+        [
+            'role' => 'user',
+            'content' => 'Summarize this text in one sentence.'
+        ]
+    ],
+    'max_output_tokens' => 120,
+    'temperature' => 0.7
+]);
+
+echo $response['output_text'] ?? '';
+```
+
 ### ChaptersService
 
 Generates chapter breakdowns from video transcripts.

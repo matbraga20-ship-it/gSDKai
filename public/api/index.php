@@ -89,6 +89,7 @@ try {
         '/generate/timestamps' => handleGenerateTimestamps($method, $input),
         '/generate/shorts-ideas' => handleGenerateShortsIdeas($method, $input),
         '/embeddings' => handleEmbeddings($method, $input),
+        '/responses' => handleResponses($method, $input),
         '/images/generate' => handleImageGenerate($method, $input),
         '/audio/transcribe' => handleAudioTranscribe($method),
         '/models' => handleModelsList($method),
@@ -129,6 +130,26 @@ function handleEmbeddings(string $method, array $input): void
         $result = $service->create($text);
 
         ResponseJson::send(ResponseJson::success(['embeddings' => $result]));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleResponses(string $method, array $input): void
+{
+    if ($method !== 'POST') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        if (empty($input)) {
+            ResponseJson::send(ResponseJson::error('Payload is required', 'VALIDATION_ERROR'), 400);
+        }
+
+        $service = new OpenAI\Services\ResponsesService();
+        $result = $service->create($input);
+
+        ResponseJson::send(ResponseJson::success($result));
     } catch (OpenAIException $e) {
         ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
     }

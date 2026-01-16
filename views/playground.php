@@ -35,6 +35,9 @@ $hasApiKey = Config::hasApiKey();
             <button data-tab="tags" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('tags')">
                 🏷️ Tag Generator
             </button>
+            <button data-tab="responses" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('responses')">
+                💬 Responses
+            </button>
             <button data-tab="chapters" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('chapters')">
                 ⏱️ Timestamps/Chapters
             </button>
@@ -176,6 +179,43 @@ $hasApiKey = Config::hasApiKey();
 
             <div id="tags-error" class="hidden bg-red-50 border border-red-200 rounded-md p-4">
                 <p id="tags-error-msg" class="text-red-800"></p>
+            </div>
+        </div>
+
+        <!-- Responses Tab -->
+        <div id="tab-responses" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">💬 Responses API</h2>
+            <p class="text-gray-600">Send a direct payload to the OpenAI Responses API</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="responses-model" class="block text-sm font-medium text-gray-900 mb-2">Model</label>
+                    <input id="responses-model" class="w-full px-4 py-2 border border-gray-300 rounded-md" value="gpt-4o-mini" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+                <div>
+                    <label for="responses-max-tokens" class="block text-sm font-medium text-gray-900 mb-2">Max Output Tokens</label>
+                    <input id="responses-max-tokens" type="number" min="1" max="4000" value="120" class="w-full px-4 py-2 border border-gray-300 rounded-md" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="responses-system" class="block text-sm font-medium text-gray-900 mb-2">System Prompt</label>
+                    <textarea id="responses-system" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="You are a helpful assistant." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+                </div>
+                <div>
+                    <label for="responses-user" class="block text-sm font-medium text-gray-900 mb-2">User Prompt</label>
+                    <textarea id="responses-user" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="Write a short elevator pitch." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+                </div>
+            </div>
+
+            <button onclick="sendResponses()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                🚀 Send Response
+            </button>
+
+            <div id="responses-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Output Text</h3>
+                <pre id="responses-output" class="text-sm text-gray-800 whitespace-pre-wrap"></pre>
             </div>
         </div>
 
@@ -470,6 +510,40 @@ async function generateTags() {
     showLoading('tags');
     const result = await apiCall('/generate/tags', 'POST', { content: input });
     handleResponse('tags', result);
+}
+
+// Responses API
+async function sendResponses() {
+    const model = document.getElementById('responses-model').value.trim();
+    const systemPrompt = document.getElementById('responses-system').value.trim();
+    const userPrompt = document.getElementById('responses-user').value.trim();
+    const maxOutputTokens = parseInt(document.getElementById('responses-max-tokens').value, 10) || 120;
+
+    if (!model || !userPrompt) {
+        return alert('Please provide a model and a user prompt');
+    }
+
+    const input = [];
+    if (systemPrompt) {
+        input.push({ role: 'system', content: systemPrompt });
+    }
+    input.push({ role: 'user', content: userPrompt });
+
+    document.getElementById('responses-result').classList.add('hidden');
+    const result = await apiCall('/responses', 'POST', {
+        model,
+        input,
+        max_output_tokens: maxOutputTokens,
+        temperature: 0.7
+    });
+
+    if (result.success) {
+        const outputText = result.data?.output_text ?? '';
+        document.getElementById('responses-output').textContent = outputText || JSON.stringify(result.data, null, 2);
+        document.getElementById('responses-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Responses API failed');
+    }
 }
 
 // Generate Chapters
