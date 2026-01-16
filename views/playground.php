@@ -59,6 +59,9 @@ $hasApiKey = Config::hasApiKey();
             <button data-tab="files" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('files')">
                 📁 Files
             </button>
+            <button data-tab="explorer" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('explorer')">
+                🧭 API Explorer
+            </button>
         </div>
     </div>
 
@@ -384,6 +387,43 @@ $hasApiKey = Config::hasApiKey();
                 <div id="files-output" class="space-y-2 text-sm text-gray-800"></div>
             </div>
         </div>
+
+        <!-- API Explorer Tab -->
+        <div id="tab-explorer" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">🧭 OpenAI API Explorer</h2>
+            <p class="text-gray-600">Call any OpenAI endpoint (Assistants, Threads, Runs, Vector Stores, Batches, Fine-tuning, Realtime sessions, etc.)</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="explorer-method" class="block text-sm font-medium text-gray-900 mb-2">HTTP Method</label>
+                    <select id="explorer-method" class="w-full px-4 py-2 border border-gray-300 rounded-md" <?php echo !$hasApiKey ? 'disabled' : ''; ?>>
+                        <option value="POST">POST</option>
+                        <option value="GET">GET</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="explorer-endpoint" class="block text-sm font-medium text-gray-900 mb-2">Endpoint (start with /)</label>
+                    <input id="explorer-endpoint" class="w-full px-4 py-2 border border-gray-300 rounded-md" placeholder="/assistants" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div>
+                <label for="explorer-payload" class="block text-sm font-medium text-gray-900 mb-2">JSON Payload</label>
+                <textarea id="explorer-payload" class="w-full h-40 px-4 py-3 border border-gray-300 rounded-md font-mono text-sm" placeholder='{"name":"Content Helper","model":"gpt-4o-mini"}' <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+            </div>
+
+            <button onclick="runApiExplorer()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                🚀 Send Request
+            </button>
+
+            <div id="explorer-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Response</h3>
+                <pre id="explorer-output" class="text-sm text-gray-800 overflow-auto"></pre>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -680,6 +720,40 @@ async function uploadFile() {
         await loadFiles();
     } else {
         alert(result.error?.message || 'File upload failed');
+    }
+}
+
+// OpenAI API Explorer
+async function runApiExplorer() {
+    const method = document.getElementById('explorer-method').value;
+    const endpoint = document.getElementById('explorer-endpoint').value.trim();
+    const payloadRaw = document.getElementById('explorer-payload').value.trim();
+
+    if (!endpoint) {
+        return alert('Please enter an endpoint starting with "/"');
+    }
+
+    let payload = {};
+    if (payloadRaw) {
+        try {
+            payload = JSON.parse(payloadRaw);
+        } catch (err) {
+            return alert('Invalid JSON payload');
+        }
+    }
+
+    document.getElementById('explorer-result').classList.add('hidden');
+    const result = await apiCall('/openai/request', 'POST', {
+        method,
+        endpoint,
+        payload
+    });
+
+    if (result.success) {
+        document.getElementById('explorer-output').textContent = JSON.stringify(result.data, null, 2);
+        document.getElementById('explorer-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Request failed');
     }
 }
 

@@ -5,7 +5,7 @@ Commercial-ready PHP SDK and demo panel for OpenAI content workflows using the *
 ## Highlights
 
 - **Resilient HTTP client** with retries and exponential backoff
-- **Ready-to-use services** (Text, Chapters, Shorts, Embeddings, Images, Audio, Files, Moderation, Models)
+- **Ready-to-use services** (Text, Chapters, Shorts, Embeddings, Images, Audio, Files, Moderation, Models, Assistants, Threads, Runs, Vector Stores, Batches, Fine-tuning, Realtime)
 - **Typed DTOs** for consistent input/output handling
 - **Built-in validation, logging, and rate limiting**
 - **Mock support** for local testing
@@ -45,7 +45,7 @@ echo $response->result;
 
 ## Playground Demo
 
-The admin panel includes a **Playground** that exposes all SDK features through a friendly UI. Configure your API key in **Settings** and explore every endpoint visually.
+The admin panel includes a **Playground** and **API Explorer** that expose all SDK features through a friendly UI. Configure your API key in **Settings** and explore every endpoint visually.
 
 ## SDK Coverage
 
@@ -58,6 +58,13 @@ Currently supported OpenAI endpoints:
 - **Files** (`/files`)
 - **Audio** (`/audio/transcriptions`)
 - **Moderations** (`/moderations`)
+- **Assistants** (`/assistants`)
+- **Threads** (`/threads`)
+- **Runs** (`/threads/{thread_id}/runs`)
+- **Vector Stores** (`/vector_stores`)
+- **Batches** (`/batches`)
+- **Fine-tuning** (`/fine_tuning/jobs`)
+- **Realtime Sessions** (`/realtime/sessions`)
 
 ## Documentation
 
