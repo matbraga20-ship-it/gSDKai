@@ -32,7 +32,11 @@ class AudioService
             'file_path' => $filePath,
             'model' => $options['model'] ?? 'gpt-4o-transcribe',
             'language' => $options['language'] ?? null,
+            'response_format' => $options['response_format'] ?? null,
+            'temperature' => $options['temperature'] ?? null,
         ], $options['extra'] ?? []);
+
+        $payload = array_filter($payload, static fn ($value) => $value !== null);
 
         try {
             $resp = $this->client->audioTranscribe($payload);

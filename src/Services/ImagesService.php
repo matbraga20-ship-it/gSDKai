@@ -30,7 +30,12 @@ class ImagesService
             'n' => $options['n'] ?? 1,
             'size' => $options['size'] ?? '1024x1024',
             'response_format' => $options['response_format'] ?? 'b64_json',
+            'model' => $options['model'] ?? null,
+            'quality' => $options['quality'] ?? null,
+            'style' => $options['style'] ?? null,
         ], $options['extra'] ?? []);
+
+        $payload = array_filter($payload, static fn ($value) => $value !== null);
 
         try {
             $resp = $this->client->imagesCreate($payload);
