@@ -32,6 +32,12 @@ $hasApiKey = Config::hasApiKey();
             <button data-tab="description" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('description')">
                 📄 Description Generator
             </button>
+            <button data-tab="tags" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('tags')">
+                🏷️ Tag Generator
+            </button>
+            <button data-tab="responses" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('responses')">
+                💬 Responses
+            </button>
             <button data-tab="chapters" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('chapters')">
                 ⏱️ Timestamps/Chapters
             </button>
@@ -46,6 +52,21 @@ $hasApiKey = Config::hasApiKey();
             </button>
             <button data-tab="audio" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('audio')">
                 🎙️ Audio Transcription
+            </button>
+            <button data-tab="moderation" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('moderation')">
+                🛡️ Moderation
+            </button>
+            <button data-tab="models" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('models')">
+                📚 Models
+            </button>
+            <button data-tab="files" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('files')">
+                📁 Files
+            </button>
+            <button data-tab="assistants" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('assistants')">
+                🤖 Assistants Flow
+            </button>
+            <button data-tab="explorer" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('explorer')">
+                🧭 API Explorer
             </button>
         </div>
     </div>
@@ -124,6 +145,80 @@ $hasApiKey = Config::hasApiKey();
 
             <div id="description-error" class="hidden bg-red-50 border border-red-200 rounded-md p-4">
                 <p id="description-error-msg" class="text-red-800"></p>
+            </div>
+        </div>
+
+        <!-- Tags Generator Tab -->
+        <div id="tab-tags" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">🏷️ Tag Generator</h2>
+            <p class="text-gray-600">Generate comma-separated tags from your content</p>
+
+            <textarea
+                id="tags-input"
+                class="w-full h-32 px-4 py-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Paste your content or keywords here..."
+                <?php echo !$hasApiKey ? 'disabled' : ''; ?>
+            ></textarea>
+
+            <button
+                onclick="generateTags()"
+                <?php echo !$hasApiKey ? 'disabled' : ''; ?>
+                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                ✨ Generate Tags
+            </button>
+
+            <div id="tags-result" class="hidden bg-green-50 border border-green-200 rounded-md p-4">
+                <h3 class="font-semibold text-green-900 mb-2">Generated Tags:</h3>
+                <p id="tags-output" class="text-green-800 mb-2"></p>
+                <button onclick="copyToClipboard(document.getElementById('tags-output').textContent)" class="text-sm text-green-600 hover:underline">
+                    📋 Copy Tags
+                </button>
+            </div>
+
+            <div id="tags-loading" class="hidden text-center">
+                <p class="text-gray-600">⏳ Generating...</p>
+            </div>
+
+            <div id="tags-error" class="hidden bg-red-50 border border-red-200 rounded-md p-4">
+                <p id="tags-error-msg" class="text-red-800"></p>
+            </div>
+        </div>
+
+        <!-- Responses Tab -->
+        <div id="tab-responses" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">💬 Responses API</h2>
+            <p class="text-gray-600">Send a direct payload to the OpenAI Responses API</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="responses-model" class="block text-sm font-medium text-gray-900 mb-2">Model</label>
+                    <input id="responses-model" class="w-full px-4 py-2 border border-gray-300 rounded-md" value="gpt-4o-mini" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+                <div>
+                    <label for="responses-max-tokens" class="block text-sm font-medium text-gray-900 mb-2">Max Output Tokens</label>
+                    <input id="responses-max-tokens" type="number" min="1" max="4000" value="120" class="w-full px-4 py-2 border border-gray-300 rounded-md" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="responses-system" class="block text-sm font-medium text-gray-900 mb-2">System Prompt</label>
+                    <textarea id="responses-system" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="You are a helpful assistant." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+                </div>
+                <div>
+                    <label for="responses-user" class="block text-sm font-medium text-gray-900 mb-2">User Prompt</label>
+                    <textarea id="responses-user" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="Write a short elevator pitch." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+                </div>
+            </div>
+
+            <button onclick="sendResponses()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                🚀 Send Response
+            </button>
+
+            <div id="responses-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Output Text</h3>
+                <pre id="responses-output" class="text-sm text-gray-800 whitespace-pre-wrap"></pre>
             </div>
         </div>
 
@@ -258,6 +353,156 @@ $hasApiKey = Config::hasApiKey();
                 <pre id="audio-output" class="text-sm text-gray-800"></pre>
             </div>
         </div>
+
+        <!-- Moderation Tab -->
+        <div id="tab-moderation" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">🛡️ Moderation</h2>
+            <p class="text-gray-600">Check content against OpenAI moderation policies</p>
+
+            <textarea
+                id="moderation-input"
+                class="w-full h-28 px-4 py-3 border border-gray-300 rounded-md"
+                placeholder="Paste text to moderate..."
+                <?php echo !$hasApiKey ? 'disabled' : ''; ?>
+            ></textarea>
+
+            <button onclick="runModeration()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                🔍 Run Moderation
+            </button>
+
+            <div id="moderation-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Moderation Result</h3>
+                <pre id="moderation-output" class="text-sm text-gray-800"></pre>
+            </div>
+        </div>
+
+        <!-- Models Tab -->
+        <div id="tab-models" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">📚 Models</h2>
+            <p class="text-gray-600">List available OpenAI models</p>
+
+            <button onclick="loadModels()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                📥 Load Models
+            </button>
+
+            <div id="models-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Model List</h3>
+                <ul id="models-output" class="text-sm text-gray-800 list-disc ml-5"></ul>
+            </div>
+        </div>
+
+        <!-- Files Tab -->
+        <div id="tab-files" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">📁 Files</h2>
+            <p class="text-gray-600">Upload and list files for OpenAI</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="files-purpose" class="block text-sm font-medium text-gray-900 mb-2">Purpose (optional)</label>
+                    <select
+                        id="files-purpose"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md"
+                        <?php echo !$hasApiKey ? 'disabled' : ''; ?>
+                    >
+                        <option value="">Select purpose</option>
+                        <option value="fine-tune">Fine-tune (.jsonl)</option>
+                        <option value="assistants">Assistants</option>
+                        <option value="vision">Vision</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="files-upload" class="block text-sm font-medium text-gray-900 mb-2">File</label>
+                    <input id="files-upload" type="file" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button onclick="uploadFile()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                    ⬆️ Upload File
+                </button>
+                <button onclick="loadFiles()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-gray-700 text-white rounded-md">
+                    📥 Refresh File List
+                </button>
+            </div>
+
+            <div id="files-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Files</h3>
+                <div id="files-output" class="space-y-2 text-sm text-gray-800"></div>
+            </div>
+        </div>
+
+        <!-- Assistants Flow Tab -->
+        <div id="tab-assistants" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">🤖 Assistants Workflow</h2>
+            <p class="text-gray-600">Create an assistant, thread, message, and run in one guided flow</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="assistants-model" class="block text-sm font-medium text-gray-900 mb-2">Model</label>
+                    <input id="assistants-model" class="w-full px-4 py-2 border border-gray-300 rounded-md" value="gpt-4o-mini" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+                <div>
+                    <label for="assistants-name" class="block text-sm font-medium text-gray-900 mb-2">Assistant Name</label>
+                    <input id="assistants-name" class="w-full px-4 py-2 border border-gray-300 rounded-md" value="Content Helper" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div>
+                <label for="assistants-instructions" class="block text-sm font-medium text-gray-900 mb-2">Instructions</label>
+                <textarea id="assistants-instructions" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="You help write concise marketing copy." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+            </div>
+
+            <div>
+                <label for="assistants-message" class="block text-sm font-medium text-gray-900 mb-2">User Message</label>
+                <textarea id="assistants-message" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="Write a 1-sentence product tagline." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+            </div>
+
+            <button onclick="runAssistantsFlow()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                🚀 Run Workflow
+            </button>
+
+            <div id="assistants-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Workflow Result</h3>
+                <pre id="assistants-output" class="text-sm text-gray-800 overflow-auto"></pre>
+            </div>
+        </div>
+
+        <!-- API Explorer Tab -->
+        <div id="tab-explorer" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">🧭 OpenAI API Explorer</h2>
+            <p class="text-gray-600">Call any OpenAI endpoint (Assistants, Threads, Runs, Vector Stores, Batches, Fine-tuning, Realtime sessions, etc.)</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="explorer-method" class="block text-sm font-medium text-gray-900 mb-2">HTTP Method</label>
+                    <select id="explorer-method" class="w-full px-4 py-2 border border-gray-300 rounded-md" <?php echo !$hasApiKey ? 'disabled' : ''; ?>>
+                        <option value="POST">POST</option>
+                        <option value="GET">GET</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="explorer-endpoint" class="block text-sm font-medium text-gray-900 mb-2">Endpoint (start with /)</label>
+                    <input id="explorer-endpoint" class="w-full px-4 py-2 border border-gray-300 rounded-md" placeholder="/assistants" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div>
+                <label for="explorer-payload" class="block text-sm font-medium text-gray-900 mb-2">JSON Payload</label>
+                <textarea id="explorer-payload" class="w-full h-40 px-4 py-3 border border-gray-300 rounded-md font-mono text-sm" placeholder='{"name":"Content Helper","model":"gpt-4o-mini"}' <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+            </div>
+
+            <button onclick="runApiExplorer()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                🚀 Send Request
+            </button>
+
+            <div id="explorer-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Response</h3>
+                <pre id="explorer-output" class="text-sm text-gray-800 overflow-auto"></pre>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -290,6 +535,53 @@ async function generateDescription() {
         document.getElementById('description-length').textContent = result.data.result.length;
     } else {
         handleResponse('description', result);
+    }
+}
+
+// Generate Tags
+async function generateTags() {
+    const input = document.getElementById('tags-input').value.trim();
+    if (!input) {
+        alert('Please enter content');
+        return;
+    }
+
+    showLoading('tags');
+    const result = await apiCall('/generate/tags', 'POST', { content: input });
+    handleResponse('tags', result);
+}
+
+// Responses API
+async function sendResponses() {
+    const model = document.getElementById('responses-model').value.trim();
+    const systemPrompt = document.getElementById('responses-system').value.trim();
+    const userPrompt = document.getElementById('responses-user').value.trim();
+    const maxOutputTokens = parseInt(document.getElementById('responses-max-tokens').value, 10) || 120;
+
+    if (!model || !userPrompt) {
+        return alert('Please provide a model and a user prompt');
+    }
+
+    const input = [];
+    if (systemPrompt) {
+        input.push({ role: 'system', content: systemPrompt });
+    }
+    input.push({ role: 'user', content: userPrompt });
+
+    document.getElementById('responses-result').classList.add('hidden');
+    const result = await apiCall('/responses', 'POST', {
+        model,
+        input,
+        max_output_tokens: maxOutputTokens,
+        temperature: 0.7
+    });
+
+    if (result.success) {
+        const outputText = result.data?.output_text ?? '';
+        document.getElementById('responses-output').textContent = outputText || JSON.stringify(result.data, null, 2);
+        document.getElementById('responses-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Responses API failed');
     }
 }
 
@@ -452,6 +744,223 @@ async function createEmbeddings() {
         document.getElementById('embeddings-result').classList.remove('hidden');
     } else {
         alert(result.error?.message || 'Error creating embeddings');
+    }
+}
+
+// Moderation
+async function runModeration() {
+    const input = document.getElementById('moderation-input').value.trim();
+    if (!input) return alert('Please enter text to moderate');
+
+    document.getElementById('moderation-result').classList.add('hidden');
+    const result = await apiCall('/moderation', 'POST', { input });
+    if (result.success) {
+        document.getElementById('moderation-output').textContent = JSON.stringify(result.data, null, 2);
+        document.getElementById('moderation-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Moderation failed');
+    }
+}
+
+// Models
+async function loadModels() {
+    document.getElementById('models-result').classList.add('hidden');
+    const result = await apiCall('/models', 'GET');
+    if (result.success) {
+        const list = document.getElementById('models-output');
+        list.innerHTML = '';
+        const models = result.data?.data || [];
+        if (models.length === 0) {
+            list.innerHTML = '<li>No models returned.</li>';
+        } else {
+            for (const model of models) {
+                const item = document.createElement('li');
+                item.textContent = model.id || 'Unknown model';
+                list.appendChild(item);
+            }
+        }
+        document.getElementById('models-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Failed to load models');
+    }
+}
+
+// Files
+async function loadFiles() {
+    document.getElementById('files-result').classList.add('hidden');
+    const result = await apiCall('/files', 'GET');
+    if (result.success) {
+        const container = document.getElementById('files-output');
+        container.innerHTML = '';
+        const files = result.data?.data || [];
+        if (files.length === 0) {
+            container.innerHTML = '<p>No files found.</p>';
+        } else {
+            for (const file of files) {
+                const entry = document.createElement('div');
+                entry.className = 'border rounded p-2';
+                entry.innerHTML = `
+                    <div class="font-semibold">${escapeHtml(file.filename || file.id || 'File')}</div>
+                    <div class="text-xs text-gray-600">ID: ${escapeHtml(file.id || 'n/a')}</div>
+                    <div class="text-xs text-gray-600">Purpose: ${escapeHtml(file.purpose || 'n/a')}</div>
+                `;
+                container.appendChild(entry);
+            }
+        }
+        document.getElementById('files-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Failed to load files');
+    }
+}
+
+async function uploadFile() {
+    const fileInput = document.getElementById('files-upload');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        return alert('Please select a file');
+    }
+
+    const form = new FormData();
+    form.append('file', fileInput.files[0]);
+
+    const purpose = document.getElementById('files-purpose').value;
+    if (purpose) {
+        form.append('purpose', purpose);
+    }
+
+    const result = await apiCall('/files/upload', 'POST', form, true);
+    if (result.success) {
+        alert('File uploaded successfully');
+        await loadFiles();
+    } else {
+        alert(result.error?.message || 'File upload failed');
+    }
+}
+
+// Assistants workflow
+async function runAssistantsFlow() {
+    const model = document.getElementById('assistants-model').value.trim();
+    const name = document.getElementById('assistants-name').value.trim();
+    const instructions = document.getElementById('assistants-instructions').value.trim();
+    const message = document.getElementById('assistants-message').value.trim();
+
+    if (!model || !name || !message) {
+        return alert('Please provide model, name, and a user message');
+    }
+
+    document.getElementById('assistants-result').classList.add('hidden');
+
+    const assistant = await apiCall('/openai/request', 'POST', {
+        method: 'POST',
+        endpoint: '/assistants',
+        payload: {
+            name,
+            model,
+            instructions: instructions || undefined
+        }
+    });
+
+    if (!assistant.success) {
+        return alert(assistant.error?.message || 'Failed to create assistant');
+    }
+
+    const thread = await apiCall('/openai/request', 'POST', {
+        method: 'POST',
+        endpoint: '/threads',
+        payload: {}
+    });
+
+    if (!thread.success) {
+        return alert(thread.error?.message || 'Failed to create thread');
+    }
+
+    const createdMessage = await apiCall('/openai/request', 'POST', {
+        method: 'POST',
+        endpoint: `/threads/${thread.data.id}/messages`,
+        payload: {
+            role: 'user',
+            content: message
+        }
+    });
+
+    if (!createdMessage.success) {
+        return alert(createdMessage.error?.message || 'Failed to create message');
+    }
+
+    const run = await apiCall('/openai/request', 'POST', {
+        method: 'POST',
+        endpoint: `/threads/${thread.data.id}/runs`,
+        payload: {
+            assistant_id: assistant.data.id
+        }
+    });
+
+    if (!run.success) {
+        return alert(run.error?.message || 'Failed to create run');
+    }
+
+    const runStatus = await apiCall('/openai/request', 'POST', {
+        method: 'GET',
+        endpoint: `/threads/${thread.data.id}/runs/${run.data.id}`,
+        payload: {}
+    });
+
+    const messages = await apiCall('/openai/request', 'POST', {
+        method: 'GET',
+        endpoint: `/threads/${thread.data.id}/messages`,
+        payload: {}
+    });
+
+    const steps = await apiCall('/openai/request', 'POST', {
+        method: 'GET',
+        endpoint: `/threads/${thread.data.id}/runs/${run.data.id}/steps`,
+        payload: {}
+    });
+
+    const output = {
+        assistant: assistant.data,
+        thread: thread.data,
+        message: createdMessage.data,
+        run: run.data,
+        run_status: runStatus.data ?? runStatus,
+        messages: messages.data ?? messages,
+        steps: steps.data ?? steps
+    };
+
+    document.getElementById('assistants-output').textContent = JSON.stringify(output, null, 2);
+    document.getElementById('assistants-result').classList.remove('hidden');
+}
+
+// OpenAI API Explorer
+async function runApiExplorer() {
+    const method = document.getElementById('explorer-method').value;
+    const endpoint = document.getElementById('explorer-endpoint').value.trim();
+    const payloadRaw = document.getElementById('explorer-payload').value.trim();
+
+    if (!endpoint) {
+        return alert('Please enter an endpoint starting with "/"');
+    }
+
+    let payload = {};
+    if (payloadRaw) {
+        try {
+            payload = JSON.parse(payloadRaw);
+        } catch (err) {
+            return alert('Invalid JSON payload');
+        }
+    }
+
+    document.getElementById('explorer-result').classList.add('hidden');
+    const result = await apiCall('/openai/request', 'POST', {
+        method,
+        endpoint,
+        payload
+    });
+
+    if (result.success) {
+        document.getElementById('explorer-output').textContent = JSON.stringify(result.data, null, 2);
+        document.getElementById('explorer-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Request failed');
     }
 }
 

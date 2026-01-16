@@ -89,12 +89,14 @@ try {
         '/generate/timestamps' => handleGenerateTimestamps($method, $input),
         '/generate/shorts-ideas' => handleGenerateShortsIdeas($method, $input),
         '/embeddings' => handleEmbeddings($method, $input),
+        '/responses' => handleResponses($method, $input),
         '/images/generate' => handleImageGenerate($method, $input),
         '/audio/transcribe' => handleAudioTranscribe($method),
         '/models' => handleModelsList($method),
         '/files' => handleFilesList($method),
         '/files/upload' => handleFileUpload($method),
         '/moderation' => handleModeration($method, $input),
+        '/openai/request' => handleOpenAIRequest($method, $input),
         default => ResponseJson::send(
             ResponseJson::error('Endpoint not found', 'NOT_FOUND'),
             404
@@ -128,6 +130,26 @@ function handleEmbeddings(string $method, array $input): void
         $result = $service->create($text);
 
         ResponseJson::send(ResponseJson::success(['embeddings' => $result]));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleResponses(string $method, array $input): void
+{
+    if ($method !== 'POST') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        if (empty($input)) {
+            ResponseJson::send(ResponseJson::error('Payload is required', 'VALIDATION_ERROR'), 400);
+        }
+
+        $service = new OpenAI\Services\ResponsesService();
+        $result = $service->create($input);
+
+        ResponseJson::send(ResponseJson::success($result));
     } catch (OpenAIException $e) {
         ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
     }
@@ -444,6 +466,42 @@ function handleModeration(string $method, array $input): void
 
         $service = new ModerationService();
         $result = $service->moderate((array)$content);
+
+        ResponseJson::send(ResponseJson::success($result));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleOpenAIRequest(string $method, array $input): void
+{
+    if ($method !== 'POST') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        $endpoint = isset($input['endpoint']) ? trim((string)$input['endpoint']) : '';
+        $httpMethod = strtoupper((string)($input['method'] ?? 'POST'));
+        $payload = $input['payload'] ?? [];
+
+        if ($endpoint === '' || strpos($endpoint, '/') !== 0) {
+            ResponseJson::send(ResponseJson::error('Endpoint must start with "/"', 'VALIDATION_ERROR'), 400);
+        }
+
+        if (str_contains($endpoint, 'http')) {
+            ResponseJson::send(ResponseJson::error('Full URLs are not allowed', 'VALIDATION_ERROR'), 400);
+        }
+
+        if (!in_array($httpMethod, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            ResponseJson::send(ResponseJson::error('Unsupported HTTP method', 'VALIDATION_ERROR'), 400);
+        }
+
+        if (!is_array($payload)) {
+            ResponseJson::send(ResponseJson::error('Payload must be a JSON object', 'VALIDATION_ERROR'), 400);
+        }
+
+        $client = new OpenAI\Client\OpenAIClient();
+        $result = $client->request($endpoint, $payload, $httpMethod);
 
         ResponseJson::send(ResponseJson::success($result));
     } catch (OpenAIException $e) {
