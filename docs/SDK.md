@@ -417,6 +417,49 @@ $runs = $service->list('thread_id');
 $cancelled = $service->cancel('thread_id', $run['id']);
 ```
 
+### Assistants Workflow Example
+
+End-to-end example using Assistants, Threads, Messages, and Runs.
+
+```php
+<?php
+use OpenAI\Services\AssistantsService;
+use OpenAI\Services\ThreadsService;
+use OpenAI\Services\MessagesService;
+use OpenAI\Services\RunsService;
+
+$assistants = new AssistantsService();
+$threads = new ThreadsService();
+$messages = new MessagesService();
+$runs = new RunsService();
+
+// Create assistant
+$assistant = $assistants->create([
+    'name' => 'Content Helper',
+    'model' => 'gpt-4o-mini',
+    'instructions' => 'You help write concise marketing copy.'
+]);
+
+// Create thread with initial message
+$thread = $threads->create();
+$message = $messages->create($thread['id'], [
+    'role' => 'user',
+    'content' => 'Write a 1-sentence product tagline.'
+]);
+
+// Create run
+$run = $runs->create($thread['id'], [
+    'assistant_id' => $assistant['id']
+]);
+
+// Retrieve run status
+$runStatus = $runs->retrieve($thread['id'], $run['id']);
+
+// List messages and run steps
+$allMessages = $messages->list($thread['id']);
+$steps = $runs->listSteps($thread['id'], $run['id']);
+```
+
 ### VectorStoresService
 
 Create vector stores and manage stored files.

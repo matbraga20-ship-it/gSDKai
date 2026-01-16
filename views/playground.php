@@ -62,6 +62,9 @@ $hasApiKey = Config::hasApiKey();
             <button data-tab="files" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('files')">
                 📁 Files
             </button>
+            <button data-tab="assistants" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('assistants')">
+                🤖 Assistants Flow
+            </button>
             <button data-tab="explorer" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('explorer')">
                 🧭 API Explorer
             </button>
@@ -425,6 +428,42 @@ $hasApiKey = Config::hasApiKey();
             <div id="files-result" class="hidden bg-white p-4 border rounded">
                 <h3 class="font-semibold">Files</h3>
                 <div id="files-output" class="space-y-2 text-sm text-gray-800"></div>
+            </div>
+        </div>
+
+        <!-- Assistants Flow Tab -->
+        <div id="tab-assistants" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">🤖 Assistants Workflow</h2>
+            <p class="text-gray-600">Create an assistant, thread, message, and run in one guided flow</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="assistants-model" class="block text-sm font-medium text-gray-900 mb-2">Model</label>
+                    <input id="assistants-model" class="w-full px-4 py-2 border border-gray-300 rounded-md" value="gpt-4o-mini" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+                <div>
+                    <label for="assistants-name" class="block text-sm font-medium text-gray-900 mb-2">Assistant Name</label>
+                    <input id="assistants-name" class="w-full px-4 py-2 border border-gray-300 rounded-md" value="Content Helper" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div>
+                <label for="assistants-instructions" class="block text-sm font-medium text-gray-900 mb-2">Instructions</label>
+                <textarea id="assistants-instructions" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="You help write concise marketing copy." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+            </div>
+
+            <div>
+                <label for="assistants-message" class="block text-sm font-medium text-gray-900 mb-2">User Message</label>
+                <textarea id="assistants-message" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="Write a 1-sentence product tagline." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+            </div>
+
+            <button onclick="runAssistantsFlow()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                🚀 Run Workflow
+            </button>
+
+            <div id="assistants-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Workflow Result</h3>
+                <pre id="assistants-output" class="text-sm text-gray-800 overflow-auto"></pre>
             </div>
         </div>
 
@@ -795,6 +834,100 @@ async function uploadFile() {
     } else {
         alert(result.error?.message || 'File upload failed');
     }
+}
+
+// Assistants workflow
+async function runAssistantsFlow() {
+    const model = document.getElementById('assistants-model').value.trim();
+    const name = document.getElementById('assistants-name').value.trim();
+    const instructions = document.getElementById('assistants-instructions').value.trim();
+    const message = document.getElementById('assistants-message').value.trim();
+
+    if (!model || !name || !message) {
+        return alert('Please provide model, name, and a user message');
+    }
+
+    document.getElementById('assistants-result').classList.add('hidden');
+
+    const assistant = await apiCall('/openai/request', 'POST', {
+        method: 'POST',
+        endpoint: '/assistants',
+        payload: {
+            name,
+            model,
+            instructions: instructions || undefined
+        }
+    });
+
+    if (!assistant.success) {
+        return alert(assistant.error?.message || 'Failed to create assistant');
+    }
+
+    const thread = await apiCall('/openai/request', 'POST', {
+        method: 'POST',
+        endpoint: '/threads',
+        payload: {}
+    });
+
+    if (!thread.success) {
+        return alert(thread.error?.message || 'Failed to create thread');
+    }
+
+    const createdMessage = await apiCall('/openai/request', 'POST', {
+        method: 'POST',
+        endpoint: `/threads/${thread.data.id}/messages`,
+        payload: {
+            role: 'user',
+            content: message
+        }
+    });
+
+    if (!createdMessage.success) {
+        return alert(createdMessage.error?.message || 'Failed to create message');
+    }
+
+    const run = await apiCall('/openai/request', 'POST', {
+        method: 'POST',
+        endpoint: `/threads/${thread.data.id}/runs`,
+        payload: {
+            assistant_id: assistant.data.id
+        }
+    });
+
+    if (!run.success) {
+        return alert(run.error?.message || 'Failed to create run');
+    }
+
+    const runStatus = await apiCall('/openai/request', 'POST', {
+        method: 'GET',
+        endpoint: `/threads/${thread.data.id}/runs/${run.data.id}`,
+        payload: {}
+    });
+
+    const messages = await apiCall('/openai/request', 'POST', {
+        method: 'GET',
+        endpoint: `/threads/${thread.data.id}/messages`,
+        payload: {}
+    });
+
+    const steps = await apiCall('/openai/request', 'POST', {
+        method: 'GET',
+        endpoint: `/threads/${thread.data.id}/runs/${run.data.id}/steps`,
+        payload: {}
+    });
+
+    const output = {
+        assistant: assistant.data,
+        thread: thread.data,
+        message: createdMessage.data,
+        run: run.data,
+        run_status: runStatus.data ?? runStatus,
+        messages: messages.data ?? messages,
+        steps: steps.data ?? steps
+    };
+
+    document.getElementById('assistants-output').textContent = JSON.stringify(output, null, 2);
+    document.getElementById('assistants-result').classList.remove('hidden');
 }
 
 // OpenAI API Explorer

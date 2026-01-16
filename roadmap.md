@@ -12,18 +12,18 @@ This roadmap lists what is still missing to achieve a commercially complete SDK 
 
 ## Phase 1 — Responses Core (Start Here)
 
-- [ ] Add a dedicated `ResponsesService` wrapper for `/responses`.
-- [ ] Add a REST demo endpoint `/api/responses` for direct Responses usage.
-- [ ] Add a Playground tab that allows sending a Responses payload and viewing output.
-- [ ] Document the endpoint and SDK usage in `docs/API.md` and `docs/SDK.md`.
+- [x] Add a dedicated `ResponsesService` wrapper for `/responses`.
+- [x] Add a REST demo endpoint `/api/responses` for direct Responses usage.
+- [x] Add a Playground tab that allows sending a Responses payload and viewing output.
+- [x] Document the endpoint and SDK usage in `docs/API.md` and `docs/SDK.md`.
 
 **Acceptance:** You can create a response through Playground and via SDK without custom code.
 
 ## Phase 2 — Assistants Full Coverage
 
 - [ ] Expand Assistants coverage to include tools configuration, file attachments, and metadata helpers.
-- [ ] Add thread messages and run steps examples in docs.
-- [ ] Add Playground guided flows (assistant → thread → run → result).
+- [x] Add thread messages and run steps examples in docs.
+- [x] Add Playground guided flows (assistant → thread → run → result).
 
 **Acceptance:** A full Assistants workflow is available in the demo UI.
 
