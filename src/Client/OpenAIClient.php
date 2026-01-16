@@ -363,6 +363,20 @@ class OpenAIClient
     }
 
     /**
+     * Make a generic API request (advanced usage).
+     */
+    public function request(string $endpoint, array $payload = [], string $method = 'POST'): array
+    {
+        $apiKey = Config::get('openai_api_key');
+
+        if (empty($apiKey)) {
+            throw new OpenAIException('OpenAI API key is not configured');
+        }
+
+        return $this->requestWithRetry($apiKey, $payload, $endpoint, $method);
+    }
+
+    /**
      * Make the actual HTTP request
      */
     private function makeRequest(string $apiKey, array $payload, string $endpoint = self::DEFAULT_ENDPOINT, string $method = 'POST'): array
@@ -376,16 +390,25 @@ class OpenAIClient
 
         $options = ['headers' => $headers];
 
-        // Use GET for listing endpoints when requested
-        if (strtoupper($method) === 'GET') {
-            if (!empty($payload)) {
-                $options['query'] = $payload;
-            }
-            $response = $this->httpClient->get($url, $options);
-        } else {
-            $options['json'] = $payload;
-            $response = $this->httpClient->post($url, $options);
+        $httpMethod = strtoupper($method);
+
+        // Use query string for GET requests
+        if ($httpMethod === 'GET' && !empty($payload)) {
+            $options['query'] = $payload;
         }
+
+        if (in_array($httpMethod, ['POST', 'PUT', 'PATCH'], true)) {
+            $options['json'] = $payload;
+        }
+
+        $response = match ($httpMethod) {
+            'GET' => $this->httpClient->get($url, $options),
+            'POST' => $this->httpClient->post($url, $options),
+            'PUT' => $this->httpClient->put($url, $options),
+            'PATCH' => $this->httpClient->patch($url, $options),
+            'DELETE' => $this->httpClient->delete($url, $options),
+            default => throw new OpenAIException('Unsupported HTTP method: ' . $httpMethod),
+        };
 
         $statusCode = $response->getStatusCode();
 
