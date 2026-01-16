@@ -665,6 +665,195 @@ curl -X POST http://localhost:8000/api/files/upload \
 
 ---
 
+## Uploads
+
+### Create Upload Session
+
+**POST** `/api/uploads/create`
+
+Create an upload session for large files.
+
+**Request:**
+```json
+{
+  "filename": "dataset.jsonl",
+  "purpose": "fine-tune",
+  "bytes": 1024
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "upload_123"
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/uploads/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filename": "dataset.jsonl",
+    "purpose": "fine-tune",
+    "bytes": 1024
+  }'
+```
+
+### Upload Part
+
+**POST** `/api/uploads/part`
+
+Upload a file part. This endpoint expects **multipart/form-data**.
+
+**Request (form-data):**
+- `upload_id` (required)
+- `file` (required)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "part_123"
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/uploads/part \
+  -F "upload_id=upload_123" \
+  -F "file=@/path/to/part.bin"
+```
+
+### Complete Upload
+
+**POST** `/api/uploads/complete`
+
+Complete an upload session by referencing uploaded part IDs.
+
+**Request:**
+```json
+{
+  "upload_id": "upload_123",
+  "payload": {
+    "part_ids": ["part_123"]
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "file_123"
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/uploads/complete \
+  -H "Content-Type: application/json" \
+  -d '{
+    "upload_id": "upload_123",
+    "payload": { "part_ids": ["part_123"] }
+  }'
+```
+
+---
+
+## Vector Stores
+
+### Create Vector Store
+
+**POST** `/api/vector-stores/create`
+
+Create a new vector store.
+
+**Request:**
+```json
+{
+  "name": "Knowledge Base"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "vs_123"
+  },
+  "error": null,
+  "meta": {}
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/vector-stores/create \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Knowledge Base" }'
+```
+
+### List Vector Stores
+
+**GET** `/api/vector-stores/list`
+
+List vector stores.
+
+**Example:**
+```bash
+curl http://localhost:8000/api/vector-stores/list
+```
+
+### Add File to Vector Store
+
+**POST** `/api/vector-stores/files/add`
+
+**Request:**
+```json
+{
+  "store_id": "vs_123",
+  "payload": {
+    "file_id": "file_123"
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/vector-stores/files/add \
+  -H "Content-Type: application/json" \
+  -d '{
+    "store_id": "vs_123",
+    "payload": { "file_id": "file_123" }
+  }'
+```
+
+### List Vector Store Files
+
+**GET** `/api/vector-stores/files/list?store_id=vs_123`
+
+**Example:**
+```bash
+curl "http://localhost:8000/api/vector-stores/files/list?store_id=vs_123"
+```
+
+---
+
 ## OpenAI API Explorer
 
 ### Proxy Any OpenAI Endpoint

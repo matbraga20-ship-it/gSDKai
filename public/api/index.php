@@ -95,6 +95,13 @@ try {
         '/models' => handleModelsList($method),
         '/files' => handleFilesList($method),
         '/files/upload' => handleFileUpload($method),
+        '/uploads/create' => handleUploadsCreate($method, $input),
+        '/uploads/part' => handleUploadsPart($method),
+        '/uploads/complete' => handleUploadsComplete($method, $input),
+        '/vector-stores/create' => handleVectorStoreCreate($method, $input),
+        '/vector-stores/list' => handleVectorStoreList($method, $input),
+        '/vector-stores/files/add' => handleVectorStoreFileAdd($method, $input),
+        '/vector-stores/files/list' => handleVectorStoreFilesList($method, $input),
         '/moderation' => handleModeration($method, $input),
         '/openai/request' => handleOpenAIRequest($method, $input),
         default => ResponseJson::send(
@@ -445,6 +452,156 @@ function handleFileUpload(string $method): void
 
         $service = new FilesService();
         $result = $service->upload($dest, $fields);
+
+        ResponseJson::send(ResponseJson::success($result));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleUploadsCreate(string $method, array $input): void
+{
+    if ($method !== 'POST') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        if (empty($input)) {
+            ResponseJson::send(ResponseJson::error('Payload is required', 'VALIDATION_ERROR'), 400);
+        }
+
+        $service = new OpenAI\Services\UploadsService();
+        $result = $service->create($input);
+
+        ResponseJson::send(ResponseJson::success($result));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleUploadsComplete(string $method, array $input): void
+{
+    if ($method !== 'POST') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        $uploadId = $input['upload_id'] ?? '';
+        $payload = $input['payload'] ?? [];
+
+        if ($uploadId === '' || !is_array($payload)) {
+            ResponseJson::send(ResponseJson::error('upload_id and payload are required', 'VALIDATION_ERROR'), 400);
+        }
+
+        $service = new OpenAI\Services\UploadsService();
+        $result = $service->complete($uploadId, $payload);
+
+        ResponseJson::send(ResponseJson::success($result));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleUploadsPart(string $method): void
+{
+    if ($method !== 'POST') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        $uploadId = $_POST['upload_id'] ?? '';
+        if ($uploadId === '' || empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            ResponseJson::send(ResponseJson::error('upload_id and file are required', 'VALIDATION_ERROR'), 400);
+        }
+
+        $tmpName = $_FILES['file']['tmp_name'];
+        $dest = STORAGE_CACHE_PATH . '/upload_part_' . bin2hex(random_bytes(6)) . '_' . basename($_FILES['file']['name']);
+        if (!move_uploaded_file($tmpName, $dest)) {
+            ResponseJson::send(ResponseJson::error('Failed to save uploaded file', 'SERVER_ERROR'), 500);
+        }
+
+        $service = new OpenAI\Services\UploadsService();
+        $result = $service->addPart($uploadId, $dest);
+
+        ResponseJson::send(ResponseJson::success($result));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleVectorStoreCreate(string $method, array $input): void
+{
+    if ($method !== 'POST') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        if (empty($input)) {
+            ResponseJson::send(ResponseJson::error('Payload is required', 'VALIDATION_ERROR'), 400);
+        }
+
+        $service = new OpenAI\Services\VectorStoresService();
+        $result = $service->create($input);
+
+        ResponseJson::send(ResponseJson::success($result));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleVectorStoreList(string $method, array $input): void
+{
+    if ($method !== 'GET') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        $service = new OpenAI\Services\VectorStoresService();
+        $result = $service->list($input);
+
+        ResponseJson::send(ResponseJson::success($result));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleVectorStoreFileAdd(string $method, array $input): void
+{
+    if ($method !== 'POST') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        $storeId = $input['store_id'] ?? '';
+        $payload = $input['payload'] ?? [];
+
+        if ($storeId === '' || !is_array($payload)) {
+            ResponseJson::send(ResponseJson::error('store_id and payload are required', 'VALIDATION_ERROR'), 400);
+        }
+
+        $service = new OpenAI\Services\VectorStoresService();
+        $result = $service->addFile($storeId, $payload);
+
+        ResponseJson::send(ResponseJson::success($result));
+    } catch (OpenAIException $e) {
+        ResponseJson::send(ResponseJson::error($e->getMessage(), 'OPENAI_ERROR'), 503);
+    }
+}
+
+function handleVectorStoreFilesList(string $method, array $input): void
+{
+    if ($method !== 'GET') {
+        ResponseJson::send(ResponseJson::error('Method not allowed', 'METHOD_NOT_ALLOWED'), 405);
+    }
+
+    try {
+        $storeId = $input['store_id'] ?? '';
+        if ($storeId === '') {
+            ResponseJson::send(ResponseJson::error('store_id is required', 'VALIDATION_ERROR'), 400);
+        }
+
+        $service = new OpenAI\Services\VectorStoresService();
+        $result = $service->listFiles($storeId, $input);
 
         ResponseJson::send(ResponseJson::success($result));
     } catch (OpenAIException $e) {

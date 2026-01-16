@@ -231,6 +231,10 @@ $service = new ImagesService();
 $images = $service->generate('A futuristic city at sunset', [
     'size' => '1024x1024',
     'n' => 1,
+    'model' => 'gpt-image-1',
+    'quality' => 'hd',
+    'style' => 'vivid',
+    'response_format' => 'b64_json',
 ]);
 
 // Raw images payload (base64 or URLs depending on API)
@@ -249,6 +253,8 @@ $service = new AudioService();
 
 $result = $service->transcribe('/path/to/audio.mp3', [
     'language' => 'en',
+    'response_format' => 'verbose_json',
+    'temperature' => 0,
 ]);
 
 print_r($result);
@@ -308,6 +314,29 @@ $uploaded = $service->upload('/path/to/data.jsonl', [
 print_r($uploaded);
 ```
 
+### UploadsService
+
+Create and complete upload sessions for large files.
+
+```php
+<?php
+use OpenAI\Services\UploadsService;
+
+$service = new UploadsService();
+
+$upload = $service->create([
+    'filename' => 'dataset.jsonl',
+    'purpose' => 'fine-tune',
+    'bytes' => 1024
+]);
+
+$part = $service->addPart($upload['id'], '/path/to/dataset.jsonl');
+
+$completed = $service->complete($upload['id'], [
+    'part_ids' => [$part['id']]
+]);
+```
+
 ### AssistantsService
 
 Manage assistants (create, list, retrieve, update, delete).
@@ -338,6 +367,26 @@ $updated = $service->update($assistant['id'], [
 
 // Delete assistant
 $deleted = $service->delete($assistant['id']);
+```
+
+#### Tools, Files, and Metadata Helper
+
+```php
+<?php
+use OpenAI\Services\AssistantsService;
+
+$service = new AssistantsService();
+
+$assistant = $service->createWithConfig(
+    name: 'Search Assistant',
+    model: 'gpt-4o-mini',
+    instructions: 'Answer questions using the attached files.',
+    tools: [
+        ['type' => 'file_search']
+    ],
+    fileIds: ['file_123'],
+    metadata: ['source' => 'sdk']
+);
 ```
 
 ### ThreadsService
@@ -482,6 +531,21 @@ $file = $service->addFile($store['id'], [
 
 // List files in store
 $files = $service->listFiles($store['id']);
+```
+
+#### Vector Store File Batches
+
+```php
+<?php
+use OpenAI\Services\VectorStoresService;
+
+$service = new VectorStoresService();
+
+$batch = $service->createFileBatch('vs_123', [
+    'file_ids' => ['file_123', 'file_456']
+]);
+
+$status = $service->retrieveFileBatch('vs_123', $batch['id']);
 ```
 
 ### BatchesService

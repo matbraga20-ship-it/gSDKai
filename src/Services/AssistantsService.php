@@ -26,6 +26,22 @@ class AssistantsService
     }
 
     /**
+     * Create an assistant with tools, file attachments, and metadata helpers.
+     */
+    public function createWithConfig(
+        string $name,
+        string $model,
+        string $instructions = '',
+        array $tools = [],
+        array $fileIds = [],
+        array $metadata = []
+    ): array {
+        $payload = $this->buildConfigPayload($name, $model, $instructions, $tools, $fileIds, $metadata);
+
+        return $this->create($payload);
+    }
+
+    /**
      * List assistants.
      */
     public function list(array $params = []): array
@@ -50,10 +66,59 @@ class AssistantsService
     }
 
     /**
+     * Update an assistant using tools, file attachments, and metadata helpers.
+     */
+    public function updateWithConfig(
+        string $assistantId,
+        string $name,
+        string $model,
+        string $instructions = '',
+        array $tools = [],
+        array $fileIds = [],
+        array $metadata = []
+    ): array {
+        $payload = $this->buildConfigPayload($name, $model, $instructions, $tools, $fileIds, $metadata);
+
+        return $this->update($assistantId, $payload);
+    }
+
+    /**
      * Delete an assistant.
      */
     public function delete(string $assistantId): array
     {
         return $this->client->request("/assistants/{$assistantId}", [], 'DELETE');
+    }
+
+    private function buildConfigPayload(
+        string $name,
+        string $model,
+        string $instructions,
+        array $tools,
+        array $fileIds,
+        array $metadata
+    ): array {
+        $payload = [
+            'name' => $name,
+            'model' => $model,
+        ];
+
+        if ($instructions !== '') {
+            $payload['instructions'] = $instructions;
+        }
+
+        if (!empty($tools)) {
+            $payload['tools'] = $tools;
+        }
+
+        if (!empty($fileIds)) {
+            $payload['file_ids'] = $fileIds;
+        }
+
+        if (!empty($metadata)) {
+            $payload['metadata'] = $metadata;
+        }
+
+        return $payload;
     }
 }

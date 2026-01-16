@@ -88,4 +88,28 @@ class VectorStoresService
     {
         return $this->client->request("/vector_stores/{$storeId}/files/{$fileId}", [], 'DELETE');
     }
+
+    /**
+     * Create a vector store file batch.
+     */
+    public function createFileBatch(string $storeId, array $payload): array
+    {
+        return $this->client->request("/vector_stores/{$storeId}/file_batches", $payload, 'POST');
+    }
+
+    /**
+     * Retrieve a vector store file batch.
+     */
+    public function retrieveFileBatch(string $storeId, string $batchId): array
+    {
+        return $this->client->request("/vector_stores/{$storeId}/file_batches/{$batchId}", [], 'GET');
+    }
+
+    /**
+     * List vector store file batches.
+     */
+    public function listFileBatches(string $storeId, array $params = []): array
+    {
+        return $this->client->request("/vector_stores/{$storeId}/file_batches", $params, 'GET');
+    }
 }

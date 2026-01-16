@@ -62,6 +62,9 @@ $hasApiKey = Config::hasApiKey();
             <button data-tab="files" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('files')">
                 📁 Files
             </button>
+            <button data-tab="vector-stores" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('vector-stores')">
+                🧠 Vector Stores
+            </button>
             <button data-tab="assistants" class="tab-button px-4 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 transition" onclick="switchTab('assistants')">
                 🤖 Assistants Flow
             </button>
@@ -329,11 +332,31 @@ $hasApiKey = Config::hasApiKey();
 
             <input id="images-prompt" class="w-full px-4 py-3 border border-gray-300 rounded-md" placeholder="Enter image prompt..." <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
             <div class="flex gap-2 mt-2">
+                <select id="images-model" class="px-3 py-2 border rounded" <?php echo !$hasApiKey ? 'disabled' : ''; ?>>
+                    <option value="">Default model</option>
+                    <option value="gpt-image-1">gpt-image-1</option>
+                </select>
                 <select id="images-size" class="px-3 py-2 border rounded" <?php echo !$hasApiKey ? 'disabled' : ''; ?>>
                     <option value="512x512">512x512</option>
                     <option value="1024x1024" selected>1024x1024</option>
                 </select>
+                <select id="images-quality" class="px-3 py-2 border rounded" <?php echo !$hasApiKey ? 'disabled' : ''; ?>>
+                    <option value="">Default quality</option>
+                    <option value="standard">standard</option>
+                    <option value="hd">hd</option>
+                </select>
+                <select id="images-style" class="px-3 py-2 border rounded" <?php echo !$hasApiKey ? 'disabled' : ''; ?>>
+                    <option value="">Default style</option>
+                    <option value="vivid">vivid</option>
+                    <option value="natural">natural</option>
+                </select>
                 <input id="images-n" type="number" min="1" max="4" value="1" class="w-24 px-3 py-2 border rounded" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+            </div>
+            <div class="flex gap-2 mt-2">
+                <select id="images-response-format" class="px-3 py-2 border rounded" <?php echo !$hasApiKey ? 'disabled' : ''; ?>>
+                    <option value="b64_json" selected>b64_json</option>
+                    <option value="url">url</option>
+                </select>
             </div>
             <button onclick="generateImages()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md mt-3">Generate Images</button>
 
@@ -344,6 +367,26 @@ $hasApiKey = Config::hasApiKey();
         <div id="tab-audio" class="tab-content space-y-4">
             <h2 class="text-2xl font-bold text-gray-900">🎙️ Audio Transcription</h2>
             <p class="text-gray-600">Upload an audio file to transcribe</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="audio-model" class="block text-sm font-medium text-gray-900 mb-2">Model</label>
+                    <input id="audio-model" class="w-full px-4 py-2 border border-gray-300 rounded-md" value="gpt-4o-transcribe" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+                <div>
+                    <label for="audio-language" class="block text-sm font-medium text-gray-900 mb-2">Language (optional)</label>
+                    <input id="audio-language" class="w-full px-4 py-2 border border-gray-300 rounded-md" placeholder="en" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+                <div>
+                    <label for="audio-response-format" class="block text-sm font-medium text-gray-900 mb-2">Response Format</label>
+                    <select id="audio-response-format" class="w-full px-4 py-2 border border-gray-300 rounded-md" <?php echo !$hasApiKey ? 'disabled' : ''; ?>>
+                        <option value="">Default</option>
+                        <option value="json">json</option>
+                        <option value="verbose_json">verbose_json</option>
+                        <option value="text">text</option>
+                    </select>
+                </div>
+            </div>
 
             <input id="audio-file" type="file" accept="audio/*" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
             <button onclick="transcribeAudio()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">Transcribe</button>
@@ -431,6 +474,52 @@ $hasApiKey = Config::hasApiKey();
             </div>
         </div>
 
+        <!-- Vector Stores Tab -->
+        <div id="tab-vector-stores" class="tab-content space-y-4">
+            <h2 class="text-2xl font-bold text-gray-900">🧠 Vector Stores</h2>
+            <p class="text-gray-600">Create vector stores and attach files (upload files in the Files tab or via Uploads API first)</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="vector-store-name" class="block text-sm font-medium text-gray-900 mb-2">Store Name</label>
+                    <input id="vector-store-name" class="w-full px-4 py-2 border border-gray-300 rounded-md" placeholder="Knowledge Base" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+                <div class="flex items-end gap-3">
+                    <button onclick="createVectorStore()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                        ➕ Create Store
+                    </button>
+                    <button onclick="listVectorStores()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-gray-700 text-white rounded-md">
+                        📥 List Stores
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="vector-store-id" class="block text-sm font-medium text-gray-900 mb-2">Store ID</label>
+                    <input id="vector-store-id" class="w-full px-4 py-2 border border-gray-300 rounded-md" placeholder="vs_123" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+                <div>
+                    <label for="vector-store-file-id" class="block text-sm font-medium text-gray-900 mb-2">File ID</label>
+                    <input id="vector-store-file-id" class="w-full px-4 py-2 border border-gray-300 rounded-md" placeholder="file_123" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button onclick="addVectorStoreFile()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-blue-600 text-white rounded-md">
+                    ➕ Add File
+                </button>
+                <button onclick="listVectorStoreFiles()" <?php echo !$hasApiKey ? 'disabled' : ''; ?> class="px-6 py-2 bg-gray-700 text-white rounded-md">
+                    📄 List Files
+                </button>
+            </div>
+
+            <div id="vector-stores-result" class="hidden bg-white p-4 border rounded">
+                <h3 class="font-semibold">Vector Stores Output</h3>
+                <pre id="vector-stores-output" class="text-sm text-gray-800 overflow-auto"></pre>
+            </div>
+        </div>
+
         <!-- Assistants Flow Tab -->
         <div id="tab-assistants" class="tab-content space-y-4">
             <h2 class="text-2xl font-bold text-gray-900">🤖 Assistants Workflow</h2>
@@ -450,6 +539,22 @@ $hasApiKey = Config::hasApiKey();
             <div>
                 <label for="assistants-instructions" class="block text-sm font-medium text-gray-900 mb-2">Instructions</label>
                 <textarea id="assistants-instructions" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md" placeholder="You help write concise marketing copy." <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="assistants-tools" class="block text-sm font-medium text-gray-900 mb-2">Tools (JSON)</label>
+                    <textarea id="assistants-tools" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md font-mono text-sm" placeholder='[{"type":"file_search"}]' <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
+                </div>
+                <div>
+                    <label for="assistants-file-ids" class="block text-sm font-medium text-gray-900 mb-2">File IDs (comma-separated)</label>
+                    <input id="assistants-file-ids" class="w-full px-4 py-2 border border-gray-300 rounded-md" placeholder="file_123,file_456" <?php echo !$hasApiKey ? 'disabled' : ''; ?> />
+                </div>
+            </div>
+
+            <div>
+                <label for="assistants-metadata" class="block text-sm font-medium text-gray-900 mb-2">Metadata (JSON)</label>
+                <textarea id="assistants-metadata" class="w-full h-24 px-4 py-3 border border-gray-300 rounded-md font-mono text-sm" placeholder='{"source":"playground"}' <?php echo !$hasApiKey ? 'disabled' : ''; ?>></textarea>
             </div>
 
             <div>
@@ -836,16 +941,106 @@ async function uploadFile() {
     }
 }
 
+// Vector stores
+async function createVectorStore() {
+    const name = document.getElementById('vector-store-name').value.trim();
+    if (!name) {
+        return alert('Please provide a store name');
+    }
+
+    document.getElementById('vector-stores-result').classList.add('hidden');
+    const result = await apiCall('/vector-stores/create', 'POST', { name });
+    if (result.success) {
+        document.getElementById('vector-stores-output').textContent = JSON.stringify(result.data, null, 2);
+        document.getElementById('vector-stores-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Failed to create vector store');
+    }
+}
+
+async function listVectorStores() {
+    document.getElementById('vector-stores-result').classList.add('hidden');
+    const result = await apiCall('/vector-stores/list', 'GET');
+    if (result.success) {
+        document.getElementById('vector-stores-output').textContent = JSON.stringify(result.data, null, 2);
+        document.getElementById('vector-stores-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Failed to list vector stores');
+    }
+}
+
+async function addVectorStoreFile() {
+    const storeId = document.getElementById('vector-store-id').value.trim();
+    const fileId = document.getElementById('vector-store-file-id').value.trim();
+    if (!storeId || !fileId) {
+        return alert('Please provide store ID and file ID');
+    }
+
+    document.getElementById('vector-stores-result').classList.add('hidden');
+    const result = await apiCall('/vector-stores/files/add', 'POST', {
+        store_id: storeId,
+        payload: { file_id: fileId }
+    });
+
+    if (result.success) {
+        document.getElementById('vector-stores-output').textContent = JSON.stringify(result.data, null, 2);
+        document.getElementById('vector-stores-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Failed to add file');
+    }
+}
+
+async function listVectorStoreFiles() {
+    const storeId = document.getElementById('vector-store-id').value.trim();
+    if (!storeId) {
+        return alert('Please provide store ID');
+    }
+
+    document.getElementById('vector-stores-result').classList.add('hidden');
+    const result = await apiCall(`/vector-stores/files/list?store_id=${encodeURIComponent(storeId)}`, 'GET');
+    if (result.success) {
+        document.getElementById('vector-stores-output').textContent = JSON.stringify(result.data, null, 2);
+        document.getElementById('vector-stores-result').classList.remove('hidden');
+    } else {
+        alert(result.error?.message || 'Failed to list files');
+    }
+}
+
 // Assistants workflow
 async function runAssistantsFlow() {
     const model = document.getElementById('assistants-model').value.trim();
     const name = document.getElementById('assistants-name').value.trim();
     const instructions = document.getElementById('assistants-instructions').value.trim();
+    const toolsRaw = document.getElementById('assistants-tools').value.trim();
+    const metadataRaw = document.getElementById('assistants-metadata').value.trim();
+    const fileIdsRaw = document.getElementById('assistants-file-ids').value.trim();
     const message = document.getElementById('assistants-message').value.trim();
 
     if (!model || !name || !message) {
         return alert('Please provide model, name, and a user message');
     }
+
+    let tools = [];
+    if (toolsRaw) {
+        try {
+            tools = JSON.parse(toolsRaw);
+        } catch (err) {
+            return alert('Invalid JSON in tools field');
+        }
+    }
+
+    let metadata = {};
+    if (metadataRaw) {
+        try {
+            metadata = JSON.parse(metadataRaw);
+        } catch (err) {
+            return alert('Invalid JSON in metadata field');
+        }
+    }
+
+    const fileIds = fileIdsRaw
+        ? fileIdsRaw.split(',').map((item) => item.trim()).filter(Boolean)
+        : [];
 
     document.getElementById('assistants-result').classList.add('hidden');
 
@@ -855,7 +1050,10 @@ async function runAssistantsFlow() {
         payload: {
             name,
             model,
-            instructions: instructions || undefined
+            instructions: instructions || undefined,
+            tools: tools.length > 0 ? tools : undefined,
+            file_ids: fileIds.length > 0 ? fileIds : undefined,
+            metadata: Object.keys(metadata).length > 0 ? metadata : undefined
         }
     });
 
@@ -967,12 +1165,26 @@ async function runApiExplorer() {
 // Images
 async function generateImages() {
     const prompt = document.getElementById('images-prompt').value.trim();
+    const model = document.getElementById('images-model').value.trim();
     const size = document.getElementById('images-size').value;
+    const quality = document.getElementById('images-quality').value;
+    const style = document.getElementById('images-style').value;
+    const responseFormat = document.getElementById('images-response-format').value;
     const n = parseInt(document.getElementById('images-n').value) || 1;
     if (!prompt) return alert('Please enter an image prompt');
 
     document.getElementById('images-result').classList.add('hidden');
-    const result = await apiCall('/images/generate', 'POST', { prompt, options: { size, n } });
+    const options = {
+        size,
+        n,
+        response_format: responseFormat,
+    };
+
+    if (model) options.model = model;
+    if (quality) options.quality = quality;
+    if (style) options.style = style;
+
+    const result = await apiCall('/images/generate', 'POST', { prompt, options });
 
     if (result.success) {
         const container = document.getElementById('images-result');
@@ -1010,8 +1222,15 @@ async function transcribeAudio() {
     const fileInput = document.getElementById('audio-file');
     if (!fileInput.files || fileInput.files.length === 0) return alert('Please select an audio file');
 
+    const model = document.getElementById('audio-model').value.trim();
+    const language = document.getElementById('audio-language').value.trim();
+    const responseFormat = document.getElementById('audio-response-format').value;
+
     const form = new FormData();
     form.append('file', fileInput.files[0]);
+    if (model) form.append('model', model);
+    if (language) form.append('language', language);
+    if (responseFormat) form.append('response_format', responseFormat);
 
     const result = await apiCall('/audio/transcribe', 'POST', form, true);
     if (result.success) {
